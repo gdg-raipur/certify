@@ -1,7 +1,5 @@
 # Certify - Bulk Certificate Generator
 
-![Certify Banner](https://images.unsplash.com/photo-1562564055-71e051d33c19?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3)
-
 > **A powerful, client-side bulk certificate generation tool built with Next.js.**
 > Generate hundreds of custom certificates with QR codes directly in your browser. No server uploads, total privacy.
 
