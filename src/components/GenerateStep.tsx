@@ -4,7 +4,7 @@ import { useState } from "react";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import JSZip from "jszip";
 import QRCode from "qrcode";
-import { saveAs } from "file-saver"; // I might need to install file-saver or just use a helper
+//import { saveAs } from "file-saver"; // I might need to install file-saver or just use a helper
 import { Download, Loader2, CheckCircle } from "lucide-react";
 
 // Helper for download if file-saver is not available or just use simple anchor
@@ -56,6 +56,9 @@ export function GenerateStep({ data, mapping, designConfig }: GenerateStepProps)
                 const page = pdfDoc.addPage([templateDimensions.width, templateDimensions.height]);
 
                 // Embed image
+                /*
+                * BUG IDENTIFIED
+                */
                 let image;
                 if (templateUrl.includes("png")) {
                     image = await pdfDoc.embedPng(templateImageBytes);

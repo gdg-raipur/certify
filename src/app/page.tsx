@@ -1,117 +1,62 @@
-"use client";
-
-import { useState } from "react";
-import { UploadStep } from "@/components/UploadStep";
-import { MappingStep } from "@/components/MappingStep";
-import { DesignStep } from "@/components/DesignStep";
-import { GenerateStep } from "@/components/GenerateStep";
-import { CsvColumnMapping } from "@/types";
-import { Check, ChevronRight } from "lucide-react";
-import { cn } from "@/lib/utils";
-
-const STEPS = [
-    { id: "upload", title: "Upload CSV" },
-    { id: "mapping", title: "Map Fields" },
-    { id: "design", title: "Design Certificate" },
-    { id: "generate", title: "Generate & Download" },
-];
+import Link from "next/link";
+import { QrCode, CreditCard, FileText, LogIn } from "lucide-react";
 
 export default function Home() {
-    const [currentStep, setCurrentStep] = useState(0);
-    const [data, setData] = useState<any[]>([]);
-    const [headers, setHeaders] = useState<string[]>([]);
-    const [mapping, setMapping] = useState<CsvColumnMapping | null>(null);
-    const [designConfig, setDesignConfig] = useState<any>(null);
-
-    const handleDataParsed = (parsedData: any[], parsedHeaders: string[]) => {
-        setData(parsedData);
-        setHeaders(parsedHeaders);
-        setCurrentStep(1);
-    };
-
-    const handleMappingComplete = (map: CsvColumnMapping) => {
-        setMapping(map);
-        setCurrentStep(2);
-    };
-
-    const handleDesignComplete = (config: any) => {
-        setDesignConfig(config);
-        setCurrentStep(3);
-    };
-
     return (
-        <main className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-5xl mx-auto">
-                <div className="text-center mb-12">
-                    <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight mb-2">
-                        Certify
-                    </h1>
-                    <p className="text-lg text-gray-600">
-                        Bulk generate certificates with QR codes in seconds.
-                    </p>
-                </div>
+        <main className="min-h-screen bg-sky-50 p-4 sm:p-8 flex items-center justify-center font-sans">
+            <div className="max-w-6xl w-full grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[minmax(180px,auto)]">
 
-                {/* Stepper */}
-                <div className="mb-12">
-                    <div className="flex items-center justify-center">
-                        {STEPS.map((step, index) => (
-                            <div key={step.id} className="flex items-center">
-                                <div className="flex flex-col items-center relative">
-                                    <div
-                                        className={cn(
-                                            "w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm transition-colors duration-200 z-10",
-                                            index < currentStep
-                                                ? "bg-green-500 text-white"
-                                                : index === currentStep
-                                                    ? "bg-blue-600 text-white shadow-lg ring-4 ring-blue-100"
-                                                    : "bg-gray-200 text-gray-500"
-                                        )}
-                                    >
-                                        {index < currentStep ? (
-                                            <Check className="w-6 h-6" />
-                                        ) : (
-                                            index + 1
-                                        )}
-                                    </div>
-                                    <span
-                                        className={cn(
-                                            "absolute top-12 text-xs font-medium whitespace-nowrap",
-                                            index <= currentStep ? "text-gray-900" : "text-gray-400"
-                                        )}
-                                    >
-                                        {step.title}
-                                    </span>
-                                </div>
-                                {index < STEPS.length - 1 && (
-                                    <div
-                                        className={cn(
-                                            "w-20 h-0.5 mx-2",
-                                            index < currentStep ? "bg-green-500" : "bg-gray-200"
-                                        )}
-                                    />
-                                )}
-                            </div>
-                        ))}
+                {/* Main Box: Create Certificates */}
+                <Link
+                    href="/create-certificates"
+                    className="md:col-span-2 md:row-span-2 bg-sky-200 hover:bg-sky-300 transition-all duration-300 rounded-3xl p-8 flex flex-col justify-between group shadow-sm hover:shadow-md"
+                >
+                    <div className="bg-white/30 w-16 h-16 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                        <FileText className="w-8 h-8 text-sky-800" />
+                    </div>
+                    <div>
+                        <h2 className="text-3xl font-bold text-sky-900 mb-2">Create Certificates</h2>
+                        <p className="text-sky-800/80 text-lg">
+                            Bulk generate certificates with QR codes. Upload your CSV and customize your design in seconds.
+                        </p>
+                    </div>
+                </Link>
+
+                {/* Secondary Box: Create QR from Link */}
+                <div className="bg-indigo-100 hover:bg-indigo-200 transition-all duration-300 rounded-3xl p-6 flex flex-col justify-between group cursor-pointer shadow-sm hover:shadow-md">
+                    <div className="bg-white/30 w-12 h-12 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                        <QrCode className="w-6 h-6 text-indigo-800" />
+                    </div>
+                    <div>
+                        <h3 className="text-xl font-bold text-indigo-900 mb-1">QR from Link</h3>
+                        <p className="text-indigo-800/70 text-sm">Generate QR codes instantly.</p>
                     </div>
                 </div>
 
-                {/* Content */}
-                <div className="transition-all duration-300 ease-in-out">
-                    {currentStep === 0 && <UploadStep onDataParsed={handleDataParsed} />}
-                    {currentStep === 1 && (
-                        <MappingStep headers={headers} onMappingComplete={handleMappingComplete} />
-                    )}
-                    {currentStep === 2 && (
-                        <DesignStep onDesignComplete={handleDesignComplete} />
-                    )}
-                    {currentStep === 3 && (
-                        <GenerateStep
-                            data={data}
-                            mapping={mapping}
-                            designConfig={designConfig}
-                        />
-                    )}
+                {/* Secondary Box: Create ID Cards */}
+                <div className="bg-teal-100 hover:bg-teal-200 transition-all duration-300 rounded-3xl p-6 flex flex-col justify-between group cursor-pointer shadow-sm hover:shadow-md">
+                    <div className="bg-white/30 w-12 h-12 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                        <CreditCard className="w-6 h-6 text-teal-800" />
+                    </div>
+                    <div>
+                        <h3 className="text-xl font-bold text-teal-900 mb-1">Create ID Cards</h3>
+                        <p className="text-teal-800/70 text-sm">Design and print ID cards.</p>
+                    </div>
                 </div>
+
+                {/* Secondary Box: Login */}
+                <div className="bg-rose-100 hover:bg-rose-200 transition-all duration-300 rounded-3xl p-6 flex flex-col justify-between group cursor-pointer shadow-sm hover:shadow-md md:col-span-2 md:col-start-2">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h3 className="text-xl font-bold text-rose-900 mb-1">Login</h3>
+                            <p className="text-rose-800/70 text-sm">Access your saved certificates.</p>
+                        </div>
+                        <div className="bg-white/30 w-12 h-12 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                            <LogIn className="w-6 h-6 text-rose-800" />
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </main>
     );
