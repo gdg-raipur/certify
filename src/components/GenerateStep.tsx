@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import JSZip from "jszip";
-import QRCode from "qrcode";
-//import { saveAs } from "file-saver"; // I might need to install file-saver or just use a helper
+import { generateQRCode } from "@/lib/qr";
 import { Download, Loader2, CheckCircle } from "lucide-react";
+import { saveCertificates } from "@/actions/certificates";
 
 // Helper for download if file-saver is not available or just use simple anchor
 const downloadBlob = (blob: Blob, filename: string) => {
@@ -29,36 +29,54 @@ export function GenerateStep({ data, mapping, designConfig }: GenerateStepProps)
     const [isGenerating, setIsGenerating] = useState(false);
     const [progress, setProgress] = useState(0);
     const [isDone, setIsDone] = useState(false);
+    const [statusMessage, setStatusMessage] = useState("");
 
     const generateCertificates = async () => {
         setIsGenerating(true);
+        setStatusMessage("Initializing...");
         setProgress(0);
 
         try {
             const zip = new JSZip();
             const { templateUrl, templateDimensions, namePos, qrPos, idPos } = designConfig;
 
-            // Load template image
-            const templateImageBytes = await fetch(templateUrl).then((res) => res.arrayBuffer());
+            // Generate Batch Data
+            const certificateRecords = [];
+            const timestamp = new Date().toISOString();
 
-            // We'll create a PDF for each certificate or one PDF with multiple pages?
-            // Requirement says "Return/download all generated certificates in bulk (e.g., zip archive)"
-            // So individual files (PDF or Image) in a Zip is best. Let's do PDFs.
+            // Load template image
+            setStatusMessage("Loading template...");
+            const templateImageBytes = await fetch(templateUrl).then((res) => res.arrayBuffer());
 
             for (let i = 0; i < data.length; i++) {
                 const row = data[i];
                 const name = row[mapping.name];
-                const verifyLink = mapping.verifyLink ? row[mapping.verifyLink] : "";
-                const id = row.id || `CERT-${i + 1}`; // Fallback ID
+
+                // Generate Unique ID
+                const uniqueId = crypto.randomUUID();
+
+                // Construct Verify Link
+                // Use the current origin or a configured base URL. For local dev, window.location.origin works.
+                // In production, you might want to force a specific domain.
+                const baseUrl = window.location.origin;
+                const verifyLink = `${baseUrl}/verify?id=${uniqueId}`;
+
+                // Store record for saving
+                certificateRecords.push({
+                    id: uniqueId,
+                    name: name,
+                    verifyLink: verifyLink,
+                    issuedAt: timestamp,
+                    issuer: "Certify App", // Could vary
+                });
+
+                setStatusMessage(`Generating ${i + 1}/${data.length}...`);
 
                 // Create PDF
                 const pdfDoc = await PDFDocument.create();
                 const page = pdfDoc.addPage([templateDimensions.width, templateDimensions.height]);
 
                 // Embed image
-                /*
-                * BUG IDENTIFIED
-                */
                 let image;
                 if (templateUrl.includes("png")) {
                     image = await pdfDoc.embedPng(templateImageBytes);
@@ -73,12 +91,6 @@ export function GenerateStep({ data, mapping, designConfig }: GenerateStepProps)
                 });
 
                 // Draw Name
-                // Note: pdf-lib coordinates start from bottom-left by default? Yes.
-                // But our design tool might have assumed top-left.
-                // We need to convert coordinates.
-                // Let's assume DesignStep output top-left coordinates.
-                // PDF Y = Height - Design Y
-
                 const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
                 const fontSize = namePos.fontSize;
                 const textWidth = font.widthOfTextAtSize(name, fontSize);
@@ -88,31 +100,45 @@ export function GenerateStep({ data, mapping, designConfig }: GenerateStepProps)
                     y: templateDimensions.height - namePos.y,
                     size: fontSize,
                     font: font,
-                    color: rgb(0, 0, 0), // TODO: Parse hex color
+                    color: rgb(0, 0, 0),
                 });
 
-                // Draw QR
-                if (verifyLink) {
-                    const qrDataUrl = await QRCode.toDataURL(verifyLink);
-                    const qrImageBytes = await fetch(qrDataUrl).then((res) => res.arrayBuffer());
-                    const qrImage = await pdfDoc.embedPng(qrImageBytes);
+                // Draw Unique ID (if configured in potential future updates)
+                // Just drawing it small at bottom right for now if not explicitly configured, or strictly relying on QR.
+                // Let's draw it small at the bottom left for verification ease if someone prints it.
+                const idFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+                page.drawText(`ID: ${uniqueId}`, {
+                    x: 20,
+                    y: 20,
+                    size: 8,
+                    font: idFont,
+                    color: rgb(0.5, 0.5, 0.5),
+                });
 
-                    page.drawImage(qrImage, {
-                        x: qrPos.x,
-                        y: templateDimensions.height - qrPos.y - qrPos.size, // Bottom-left of image
-                        width: qrPos.size,
-                        height: qrPos.size,
-                    });
-                }
+                // Draw QR Code pointing to Verify Link
+                const qrImageBytes = await generateQRCode(verifyLink);
+                const qrImage = await pdfDoc.embedPng(qrImageBytes);
+
+                page.drawImage(qrImage, {
+                    x: qrPos.x,
+                    y: templateDimensions.height - qrPos.y - qrPos.size,
+                    width: qrPos.size,
+                    height: qrPos.size,
+                });
 
                 // Save PDF
                 const pdfBytes = await pdfDoc.save();
-                zip.file(`${name.replace(/[^a-z0-9]/gi, '_')}_certificate.pdf`, pdfBytes);
+                zip.file(`${name.replace(/[^a-z0-9]/gi, '_')}_${uniqueId.slice(0, 8)}.pdf`, pdfBytes);
 
                 setProgress(Math.round(((i + 1) / data.length) * 100));
             }
 
+            // Save to Database (JSON file)
+            setStatusMessage("Saving records...");
+            await saveCertificates(certificateRecords);
+
             // Generate Zip
+            setStatusMessage("Compressing...");
             const content = await zip.generateAsync({ type: "blob" });
             downloadBlob(content, "certificates.zip");
             setIsDone(true);
@@ -120,6 +146,7 @@ export function GenerateStep({ data, mapping, designConfig }: GenerateStepProps)
         } catch (error) {
             console.error("Generation failed", error);
             alert("Generation failed. See console for details.");
+            setStatusMessage("Failed.");
         } finally {
             setIsGenerating(false);
         }
@@ -130,7 +157,8 @@ export function GenerateStep({ data, mapping, designConfig }: GenerateStepProps)
             <div className="bg-white p-8 rounded-xl border border-gray-200 shadow-sm">
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">Ready to Generate</h3>
                 <p className="text-gray-600 mb-8">
-                    We are ready to generate <span className="font-bold text-blue-600">{data.length}</span> certificates based on your design.
+                    We are ready to generate <span className="font-bold text-blue-600">{data.length}</span> certificates.
+                    <br /><span className="text-xs text-gray-400">Each will include a unique verification QR code.</span>
                 </p>
 
                 {isGenerating ? (
@@ -141,7 +169,7 @@ export function GenerateStep({ data, mapping, designConfig }: GenerateStepProps)
                                 style={{ width: `${progress}%` }}
                             ></div>
                         </div>
-                        <p className="text-sm text-gray-500">Generating... {progress}%</p>
+                        <p className="text-sm text-gray-500">{statusMessage} {progress}%</p>
                     </div>
                 ) : isDone ? (
                     <div className="space-y-4 animate-in fade-in zoom-in duration-300">
@@ -151,7 +179,7 @@ export function GenerateStep({ data, mapping, designConfig }: GenerateStepProps)
                             </div>
                         </div>
                         <h4 className="text-xl font-semibold text-gray-900">Success!</h4>
-                        <p className="text-gray-600">Your certificates have been downloaded.</p>
+                        <p className="text-gray-600">Certificates generated and saved.</p>
                         <button
                             onClick={() => setIsDone(false)}
                             className="text-blue-600 hover:underline text-sm"
