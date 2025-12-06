@@ -1,5 +1,9 @@
+/*
+* Home page (/) code base
+*/
+
 import Link from "next/link";
-import { QrCode, CreditCard, FileText, LogIn } from "lucide-react";
+import { QrCode, CreditCard, FileText, LogIn, ShieldCheck } from "lucide-react";
 
 export default function Home() {
     return (
@@ -23,7 +27,7 @@ export default function Home() {
                 </Link>
 
                 {/* Secondary Box: Create QR from Link */}
-                <div className="bg-indigo-100 hover:bg-indigo-200 transition-all duration-300 rounded-3xl p-6 flex flex-col justify-between group cursor-pointer shadow-sm hover:shadow-md">
+                <Link href="/qrcode-generation" className="bg-indigo-100 hover:bg-indigo-200 transition-all duration-300 rounded-3xl p-6 flex flex-col justify-between group cursor-pointer shadow-sm hover:shadow-md">
                     <div className="bg-white/30 w-12 h-12 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                         <QrCode className="w-6 h-6 text-indigo-800" />
                     </div>
@@ -31,7 +35,7 @@ export default function Home() {
                         <h3 className="text-xl font-bold text-indigo-900 mb-1">QR from Link</h3>
                         <p className="text-indigo-800/70 text-sm">Generate QR codes instantly.</p>
                     </div>
-                </div>
+                </Link>
 
                 {/* Secondary Box: Create ID Cards */}
                 <div className="bg-teal-100 hover:bg-teal-200 transition-all duration-300 rounded-3xl p-6 flex flex-col justify-between group cursor-pointer shadow-sm hover:shadow-md">
@@ -43,6 +47,17 @@ export default function Home() {
                         <p className="text-teal-800/70 text-sm">Design and print ID cards.</p>
                     </div>
                 </div>
+
+                {/* Secondary Box: Verify Certificates */}
+                <Link href="/verify" className="bg-violet-100 hover:bg-violet-200 transition-all duration-300 rounded-3xl p-6 flex flex-col justify-between group cursor-pointer shadow-sm hover:shadow-md">
+                    <div className="bg-white/30 w-12 h-12 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                        <ShieldCheck className="w-6 h-6 text-violet-800" />
+                    </div>
+                    <div>
+                        <h3 className="text-xl font-bold text-violet-900 mb-1">Verify</h3>
+                        <p className="text-violet-800/70 text-sm">Check certificate validity.</p>
+                    </div>
+                </Link>
 
                 {/* Secondary Box: Login */}
                 <div className="bg-rose-100 hover:bg-rose-200 transition-all duration-300 rounded-3xl p-6 flex flex-col justify-between group cursor-pointer shadow-sm hover:shadow-md md:col-span-2 md:col-start-2">
