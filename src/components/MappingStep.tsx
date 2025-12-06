@@ -61,7 +61,7 @@ export function MappingStep({ headers, onMappingComplete }: MappingStepProps) {
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Verify Link (Optional)
+                            Unique ID or Link (Optional)
                         </label>
                         <select
                             className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
