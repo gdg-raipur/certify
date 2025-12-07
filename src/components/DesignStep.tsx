@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Upload, Image as ImageIcon, ArrowRight } from "lucide-react";
+import { Upload, Image as ImageIcon, ArrowRight, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface DesignConfig {
@@ -14,9 +14,10 @@ interface DesignConfig {
 
 interface DesignStepProps {
     onDesignComplete: (config: DesignConfig) => void;
+    onBack: () => void;
 }
 
-export function DesignStep({ onDesignComplete }: DesignStepProps) {
+export function DesignStep({ onDesignComplete, onBack }: DesignStepProps) {
     const [template, setTemplate] = useState<string | null>(null);
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
@@ -193,7 +194,14 @@ export function DesignStep({ onDesignComplete }: DesignStepProps) {
                 </div>
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex justify-between">
+                <button
+                    onClick={onBack}
+                    className="flex items-center gap-2 px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                    <ArrowLeft className="w-4 h-4" />
+                    Back
+                </button>
                 <button
                     onClick={handleNext}
                     disabled={!template}

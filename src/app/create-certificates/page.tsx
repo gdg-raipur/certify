@@ -34,9 +34,14 @@ export default function CreateCertificates() {
         setCurrentStep(2);
     };
 
+
     const handleDesignComplete = (config: any) => {
         setDesignConfig(config);
         setCurrentStep(3);
+    };
+
+    const handleBack = () => {
+        setCurrentStep((prev) => Math.max(0, prev - 1));
     };
 
     return (
@@ -99,16 +104,24 @@ export default function CreateCertificates() {
                 <div className="transition-all duration-500 ease-in-out">
                     {currentStep === 0 && <UploadStep onDataParsed={handleDataParsed} />}
                     {currentStep === 1 && (
-                        <MappingStep headers={headers} onMappingComplete={handleMappingComplete} />
+                        <MappingStep
+                            headers={headers}
+                            onMappingComplete={handleMappingComplete}
+                            onBack={handleBack}
+                        />
                     )}
                     {currentStep === 2 && (
-                        <DesignStep onDesignComplete={handleDesignComplete} />
+                        <DesignStep
+                            onDesignComplete={handleDesignComplete}
+                            onBack={handleBack}
+                        />
                     )}
                     {currentStep === 3 && (
                         <GenerateStep
                             data={data}
                             mapping={mapping}
                             designConfig={designConfig}
+                            onBack={handleBack}
                         />
                     )}
                 </div>

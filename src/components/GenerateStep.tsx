@@ -23,9 +23,10 @@ interface GenerateStepProps {
     data: any[];
     mapping: any;
     designConfig: any;
+    onBack: () => void;
 }
 
-export function GenerateStep({ data, mapping, designConfig }: GenerateStepProps) {
+export function GenerateStep({ data, mapping, designConfig, onBack }: GenerateStepProps) {
     const [isGenerating, setIsGenerating] = useState(false);
     const [progress, setProgress] = useState(0);
     const [isDone, setIsDone] = useState(false);
@@ -77,10 +78,16 @@ export function GenerateStep({ data, mapping, designConfig }: GenerateStepProps)
                 const page = pdfDoc.addPage([templateDimensions.width, templateDimensions.height]);
 
                 // Embed image
+                // Embed image
                 let image;
-                if (templateUrl.includes("png")) {
+                // Check magic bytes to determine image type
+                const header = new Uint8Array(templateImageBytes.slice(0, 4));
+                const isPng = header[0] === 0x89 && header[1] === 0x50 && header[2] === 0x4e && header[3] === 0x47;
+
+                if (isPng) {
                     image = await pdfDoc.embedPng(templateImageBytes);
                 } else {
+                    // Fallback to JPG, or we could strict check for FF D8
                     image = await pdfDoc.embedJpg(templateImageBytes);
                 }
                 page.drawImage(image, {
