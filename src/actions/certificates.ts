@@ -58,3 +58,15 @@ export async function getCertificate(id: string): Promise<CertificateRecord | nu
         return null;
     }
 }
+
+export async function getAllCertificates(): Promise<CertificateRecord[]> {
+    await ensureDataFile();
+    try {
+        const fileContent = await fs.readFile(DATA_FILE_PATH, "utf-8");
+        const data: CertificateRecord[] = JSON.parse(fileContent);
+        return data.reverse(); // Show newest first
+    } catch (error) {
+        console.error("Failed to get all certificates:", error);
+        return [];
+    }
+}
