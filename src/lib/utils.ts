@@ -27,22 +27,20 @@ export function pLimit<T>(concurrency: number, tasks: (() => Promise<T>)[]): Pro
   const executing: Promise<void>[] = [];
 
   const runNext = async (): Promise<void> => {
-    if (index >= tasks.length) return;
-    const i = index++;
-    const task = tasks[i];
-    try {
-      const value = await task();
-      results[i] = { status: "fulfilled", value };
-    } catch (reason) {
-      results[i] = { status: "rejected", reason };
+    while (index < tasks.length) {
+      const i = index++;
+      const task = tasks[i];
+      try {
+        const value = await task();
+        results[i] = { status: "fulfilled", value };
+      } catch (reason) {
+        results[i] = { status: "rejected", reason };
+      }
     }
-    return runNext();
   };
 
   for (let i = 0; i < concurrency; i++) {
-    const p = runNext();
-    executing.push(p);
+    executing.push(runNext());
   }
-
   return Promise.all(executing).then(() => results);
 }
