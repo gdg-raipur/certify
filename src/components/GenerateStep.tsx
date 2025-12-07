@@ -292,7 +292,7 @@ export function GenerateStep({ data, mapping, designConfig, onBack }: GenerateSt
                                 <span className="font-medium text-gray-900">{data.length}</span>
                             </div>
                             <div className="flex justify-between">
-                                <span>mapped Name:</span>
+                                <span>Mapped Name:</span>
                                 <span className="font-mono bg-gray-100 px-2 py-0.5 rounded">{mapping.name}</span>
                             </div>
                             {mapping.email ? (
