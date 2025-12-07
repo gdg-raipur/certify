@@ -7,6 +7,7 @@ import { generateQRCode } from "@/lib/qr";
 import { Download, Loader2, CheckCircle } from "lucide-react";
 import { saveCertificates } from "@/actions/certificates";
 import { sendCertificateEmail } from "@/actions/email";
+import { isValidEmail, pLimit } from "@/lib/utils";
 
 // Helper for download if file-saver is not available or just use simple anchor
 const downloadBlob = (blob: Blob, filename: string) => {
@@ -71,6 +72,7 @@ export function GenerateStep({ data, mapping, designConfig, onBack }: GenerateSt
             // Generate Batch Data
             const certificateRecords = [];
             const timestamp = new Date().toISOString();
+            const emailTasks: (() => Promise<any>)[] = [];
 
             // Load template image
             setStatusMessage("Loading template...");
@@ -161,25 +163,40 @@ export function GenerateStep({ data, mapping, designConfig, onBack }: GenerateSt
                 const filename = `${name.replace(/[^a-z0-9]/gi, '_')}_${uniqueId.slice(0, 8)}.pdf`;
                 zip.file(filename, pdfBytes);
 
-                // Send Email Logic
+                // Queue Email Task
                 if (shouldSendEmail) {
-                    setStatusMessage(`Sending email to ${email}...`);
-                    // Convert to Base64 for server action
-                    const base64Pdf = Buffer.from(pdfBytes).toString('base64');
+                    if (!isValidEmail(email)) {
+                        setEmailStatuses(prev => ({
+                            ...prev,
+                            [i]: "failed"
+                        }));
+                        console.warn(`Invalid email for row ${i}: ${email}`);
+                    } else {
+                        // Mark as pending initially
+                        setEmailStatuses(prev => ({
+                            ...prev,
+                            [i]: "pending"
+                        }));
 
-                    const result = await sendCertificateEmail(
-                        email,
-                        name,
-                        emailSubject,
-                        emailBody,
-                        base64Pdf,
-                        filename
-                    );
+                        const base64Pdf = Buffer.from(pdfBytes).toString('base64');
+                        const task = async () => {
+                            const result = await sendCertificateEmail(
+                                email,
+                                name,
+                                emailSubject,
+                                emailBody,
+                                base64Pdf,
+                                filename
+                            );
 
-                    setEmailStatuses(prev => ({
-                        ...prev,
-                        [i]: result.success ? "sent" : "failed"
-                    }));
+                            setEmailStatuses(prev => ({
+                                ...prev,
+                                [i]: result.success ? "sent" : "failed"
+                            }));
+                            return result;
+                        };
+                        emailTasks.push(task);
+                    }
                 } else {
                     setEmailStatuses(prev => ({
                         ...prev,
@@ -187,7 +204,25 @@ export function GenerateStep({ data, mapping, designConfig, onBack }: GenerateSt
                     }));
                 }
 
-                setProgress(Math.round(((i + 1) / data.length) * 100));
+                setProgress(Math.round(((i + 1) / data.length) * 50));
+            }
+
+            // Process Email Queue
+            if (emailTasks.length > 0) {
+                setStatusMessage(`Sending ${emailTasks.length} emails...`);
+
+                let completedEmails = 0;
+                const wrappedTasks = emailTasks.map(task => async () => {
+                    const res = await task();
+                    completedEmails++;
+                    const emailProgress = 50 + Math.round((completedEmails / emailTasks.length) * 40);
+                    setProgress(emailProgress);
+                    return res;
+                });
+
+                await pLimit(3, wrappedTasks);
+            } else {
+                setProgress(90);
             }
 
             // Save to Database
@@ -198,6 +233,7 @@ export function GenerateStep({ data, mapping, designConfig, onBack }: GenerateSt
             setStatusMessage("Compressing...");
             const content = await zip.generateAsync({ type: "blob" });
             downloadBlob(content, "certificates.zip");
+            setProgress(100);
             setIsDone(true);
 
         } catch (error) {
