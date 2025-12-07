@@ -52,6 +52,7 @@ export function GenerateStep({ data, mapping, designConfig, onBack }: GenerateSt
             for (let i = 0; i < data.length; i++) {
                 const row = data[i];
                 const name = row[mapping.name];
+                const email = mapping.email ? row[mapping.email] : undefined;
 
                 // Generate Unique ID
                 const uniqueId = crypto.randomUUID();
@@ -69,6 +70,7 @@ export function GenerateStep({ data, mapping, designConfig, onBack }: GenerateSt
                     verifyLink: verifyLink,
                     issuedAt: timestamp,
                     issuer: "Certify App", // Could vary
+                    recipientEmail: email,
                 });
 
                 setStatusMessage(`Generating ${i + 1}/${data.length}...`);
