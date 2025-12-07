@@ -15,6 +15,12 @@ export function isValidEmail(email: string): boolean {
   return emailRegex.test(email);
 }
 
+/**
+ * Executes an array of async tasks with a concurrency limit.
+ * @param concurrency - Maximum number of tasks to run concurrently
+ * @param tasks - Array of async task functions to execute
+ * @returns Promise resolving to an array of PromiseSettledResult for each task
+ */
 export function pLimit<T>(concurrency: number, tasks: (() => Promise<T>)[]): Promise<PromiseSettledResult<T>[]> {
   let index = 0;
   const results: PromiseSettledResult<T>[] = new Array(tasks.length);
