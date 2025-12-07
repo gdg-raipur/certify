@@ -2,8 +2,11 @@
 
 import fs from "fs/promises";
 import path from "path";
+import os from "os";
 
-const DATA_FILE_PATH = path.join(process.cwd(), "src", "data", "certificates.json");
+const DATA_FILE_PATH = process.env.NODE_ENV === "production"
+    ? path.join(os.tmpdir(), "certificates.json")
+    : path.join(process.cwd(), "src", "data", "certificates.json");
 
 export interface CertificateRecord {
     id: string;
