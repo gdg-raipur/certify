@@ -7,9 +7,10 @@ import { ArrowRight } from "lucide-react";
 interface MappingStepProps {
     headers: string[];
     onMappingComplete: (mapping: CsvColumnMapping) => void;
+    onBack: () => void;
 }
 
-export function MappingStep({ headers, onMappingComplete }: MappingStepProps) {
+export function MappingStep({ headers, onMappingComplete, onBack }: MappingStepProps) {
     const [mapping, setMapping] = useState<CsvColumnMapping>({
         name: "",
         verifyLink: "",
@@ -104,7 +105,13 @@ export function MappingStep({ headers, onMappingComplete }: MappingStepProps) {
                 </div>
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex justify-between">
+                <button
+                    onClick={onBack}
+                    className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                    Back
+                </button>
                 <button
                     onClick={handleNext}
                     disabled={!mapping.name}

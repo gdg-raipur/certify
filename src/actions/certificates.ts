@@ -11,6 +11,7 @@ export interface CertificateRecord {
     verifyLink: string;
     issuedAt: string;
     templateId?: string;
+    recipientEmail?: string;
     issuer: string;
 }
 
