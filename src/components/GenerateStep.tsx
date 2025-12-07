@@ -178,9 +178,8 @@ export function GenerateStep({ data, mapping, designConfig, onBack }: GenerateSt
                             [i]: "pending"
                         }));
 
+                        const base64Pdf = Buffer.from(pdfBytes).toString('base64');
                         const task = async () => {
-                            const base64Pdf = Buffer.from(pdfBytes).toString('base64');
-
                             const result = await sendCertificateEmail(
                                 email,
                                 name,
