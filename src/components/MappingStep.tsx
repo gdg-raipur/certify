@@ -15,6 +15,7 @@ export function MappingStep({ headers, onMappingComplete, onBack }: MappingStepP
         name: "",
         verifyLink: "",
         design: "",
+        email: "",
     });
 
     // Auto-map if headers match exactly or closely
@@ -27,6 +28,8 @@ export function MappingStep({ headers, onMappingComplete, onBack }: MappingStepP
                 newMapping.verifyLink = header;
             if ((lower.includes("design") || lower.includes("template")) && !newMapping.design)
                 newMapping.design = header;
+            if ((lower.includes("email") || lower.includes("mail")) && !newMapping.email)
+                newMapping.email = header;
         });
         setMapping(newMapping);
     }, [headers]);
@@ -101,6 +104,26 @@ export function MappingStep({ headers, onMappingComplete, onBack }: MappingStepP
                         <p className="text-xs text-gray-500 mt-1">
                             If not mapped, you can select a global template in the next step.
                         </p>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Recipient Email (Optional)
+                        </label>
+                        <select
+                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            value={mapping.email || ""}
+                            onChange={(e) =>
+                                setMapping({ ...mapping, email: e.target.value })
+                            }
+                        >
+                            <option value="">Select column (or skip)...</option>
+                            {headers.map((h) => (
+                                <option key={h} value={h}>
+                                    {h}
+                                </option>
+                            ))}
+                        </select>
                     </div>
                 </div>
             </div>

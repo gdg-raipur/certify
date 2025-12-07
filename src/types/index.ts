@@ -10,4 +10,5 @@ export interface CsvColumnMapping {
     name: string;
     verifyLink: string;
     design: string;
+    email?: string;
 }
