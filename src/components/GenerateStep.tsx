@@ -129,9 +129,15 @@ export function GenerateStep({ data, mapping, designConfig, onBack }: GenerateSt
                 const fontSize = namePos.fontSize;
                 const textWidth = font.widthOfTextAtSize(name, fontSize);
 
+                // Calculate centered position
+                // Visual vertical center of font is roughly at baseline + 0.35 * fontSize
+                // We want VisualCenter at (Height - namePos.y)
+                // So Baseline = (Height - namePos.y) - 0.35 * fontSize
+                const textY = (templateDimensions.height - namePos.y) - (fontSize * 0.35);
+
                 page.drawText(name, {
                     x: namePos.x - (textWidth / 2),
-                    y: templateDimensions.height - namePos.y,
+                    y: textY,
                     size: fontSize,
                     font: font,
                     color: rgb(0, 0, 0),
@@ -151,9 +157,15 @@ export function GenerateStep({ data, mapping, designConfig, onBack }: GenerateSt
                 const qrImageBytes = await generateQRCode(verifyLink);
                 const qrImage = await pdfDoc.embedPng(qrImageBytes);
 
+                // QR Pos is the center. PDF drawImage expects bottom-left.
+                // CenterY = Height - qrPos.y
+                // BottomLeftY = CenterY - HalfSize
+                const qrY = (templateDimensions.height - qrPos.y) - (qrPos.size / 2);
+                const qrX = qrPos.x - (qrPos.size / 2);
+
                 page.drawImage(qrImage, {
-                    x: qrPos.x,
-                    y: templateDimensions.height - qrPos.y - qrPos.size,
+                    x: qrX,
+                    y: qrY,
                     width: qrPos.size,
                     height: qrPos.size,
                 });

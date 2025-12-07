@@ -107,6 +107,15 @@ export function DesignStep({ onDesignComplete, onBack }: DesignStepProps) {
                                             className="w-full p-1 border rounded"
                                         />
                                     </div>
+                                    <div className="col-span-2">
+                                        <label className="text-xs text-gray-500">Font Size</label>
+                                        <input
+                                            type="number"
+                                            value={namePos.fontSize}
+                                            onChange={(e) => setNamePos({ ...namePos, fontSize: Number(e.target.value) })}
+                                            className="w-full p-1 border rounded"
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
@@ -150,7 +159,14 @@ export function DesignStep({ onDesignComplete, onBack }: DesignStepProps) {
                 <div className="md:col-span-2">
                     <div className="bg-gray-100 rounded-xl p-4 min-h-[400px] flex items-center justify-center overflow-hidden border border-gray-200">
                         {template ? (
-                            <div className="relative shadow-lg" style={{ width: '100%', maxWidth: '100%' }}>
+                            <div
+                                className="relative shadow-lg"
+                                style={{
+                                    width: '100%',
+                                    maxWidth: '100%',
+                                    containerType: 'inline-size'
+                                }}
+                            >
                                 {/* We use an img tag for the template, and absolute positioning for overlays */}
                                 <img src={template} alt="Template" className="w-full h-auto block" />
 
@@ -160,15 +176,11 @@ export function DesignStep({ onDesignComplete, onBack }: DesignStepProps) {
                                     style={{
                                         left: `${(namePos.x / dimensions.width) * 100}%`,
                                         top: `${(namePos.y / dimensions.height) * 100}%`,
-                                        fontSize: `${(namePos.fontSize / dimensions.width) * 100}vw`, // Responsive font size approximation, ideally we'd use a container query or scale factor
-                                        // For simplicity in this preview, let's just use a fixed scale or percentage based
-                                        // Actually, for the preview to be accurate, we should probably render it at a specific scale
-                                        // Let's just use style directly but scaled down? 
-                                        // Better approach: Use percentage for position, and maybe just a fixed size for preview purpose or scale transform
+                                        fontSize: `${(namePos.fontSize / dimensions.width) * 100}cqw`,
                                         color: namePos.color,
                                     }}
                                 >
-                                    <span className="text-2xl font-bold">John Doe</span>
+                                    <span className="font-bold">John Doe</span>
                                 </div>
 
                                 {/* QR Overlay */}
