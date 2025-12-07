@@ -60,7 +60,7 @@ export default function Home() {
                 </Link>
 
                 {/* Secondary Box: Login */}
-                <div className="bg-rose-100 hover:bg-rose-200 transition-all duration-300 rounded-3xl p-6 flex flex-col justify-between group cursor-pointer shadow-sm hover:shadow-md md:col-span-2 md:col-start-2">
+                <Link href="/dashboard" className="bg-rose-100 hover:bg-rose-200 transition-all duration-300 rounded-3xl p-6 flex flex-col justify-between group cursor-pointer shadow-sm hover:shadow-md md:col-span-2 md:col-start-2">
                     <div className="flex items-center justify-between">
                         <div>
                             <h3 className="text-xl font-bold text-rose-900 mb-1">Login</h3>
@@ -70,7 +70,7 @@ export default function Home() {
                             <LogIn className="w-6 h-6 text-rose-800" />
                         </div>
                     </div>
-                </div>
+                </Link>
 
             </div>
         </main>
