@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { getAllCertificates, CertificateRecord } from "@/actions/certificates";
+import { login } from "@/actions/auth";
 import { Lock, Search, ExternalLink, Mail, User, Calendar, ShieldCheck, LogOut } from "lucide-react";
 import Link from "next/link";
 
@@ -19,17 +20,18 @@ export default function Dashboard() {
         setError("");
         setIsLoading(true);
 
-        // Simple hardcoded check as requested
-        if (orgId === "GDGRAIPUR_IntrovertCoder" && password === "2325@GDGRAIPUR_IntrovertCoder@XOXO") {
-            try {
+        try {
+            const success = await login(orgId, password);
+            if (success) {
                 const data = await getAllCertificates();
                 setCertificates(data);
                 setIsAuthenticated(true);
-            } catch (err) {
-                setError("Failed to fetch data.");
+            } else {
+                setError("Invalid Organisation ID or Password.");
             }
-        } else {
-            setError("Invalid Organisation ID or Password.");
+        } catch (err) {
+            console.error(err);
+            setError("Authentication failed. Please try again.");
         }
         setIsLoading(false);
     };
