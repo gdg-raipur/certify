@@ -20,6 +20,7 @@ const downloadBlob = (blob: Blob, filename: string) => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 };
+const hostedUrl = "https://certify-gray.vercel.app/";
 
 interface GenerateStepProps {
     data: any[];
@@ -88,7 +89,7 @@ export function GenerateStep({ data, mapping, designConfig, onBack }: GenerateSt
                 const uniqueId = crypto.randomUUID();
 
                 // Construct Verify Link
-                const baseUrl = window.location.origin;
+                const baseUrl = hostedUrl;
                 const verifyLink = `${baseUrl}/verify?id=${uniqueId}`;
 
                 // Store record for saving
