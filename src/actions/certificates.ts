@@ -26,7 +26,7 @@ export async function saveCertificates(records: CertificateRecord[]) {
             templateId: record.templateId, // Using templateId based on schema
             recipientEmail: record.recipientEmail,
             issuer: record.issuer,
-        })));
+        }))).onConflictDoNothing();
 
         return { success: true, count: records.length };
     } catch (error) {
