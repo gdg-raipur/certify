@@ -291,7 +291,22 @@ export function GenerateStep({ data, mapping, designConfig, onBack }: GenerateSt
                         <div className="text-left text-sm space-y-2 bg-gray-50 p-4 rounded-lg border border-gray-100 mb-6">
                             <p className="font-semibold text-gray-700">Email Status:</p>
                             <p className="text-green-600">Sent: {sentCount}</p>
-                            <p className="text-red-600">Failed: {failedCount}</p>
+                            <p className="text-red-600 font-medium">Failed: {failedCount}</p>
+
+                            {failedCount > 0 && (
+                                <div className="mt-2 pl-2 border-l-2 border-red-200 space-y-1">
+                                    {failedItems.map(([indexStr, status]) => {
+                                        const idx = parseInt(indexStr);
+                                        const recipientName = data[idx][mapping.name];
+                                        const recipientEmail = mapping.email ? data[idx][mapping.email] : "N/A";
+                                        return (
+                                            <div key={idx} className="text-xs text-red-500">
+                                                <span className="font-semibold">{recipientEmail}</span> ({recipientName}): {status.error}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
                     )}
 
