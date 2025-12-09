@@ -1,5 +1,5 @@
 
-import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
 export const certificates = pgTable("certificates", {
     id: text("id").primaryKey(), // We use the existing ID format (likely UUID or similar string)
