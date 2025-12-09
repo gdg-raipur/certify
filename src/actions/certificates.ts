@@ -1,12 +1,8 @@
 "use server";
 
-import fs from "fs/promises";
-import path from "path";
-import os from "os";
-
-const DATA_FILE_PATH = process.env.NODE_ENV === "production"
-    ? path.join(os.tmpdir(), "certificates.json")
-    : path.join(process.cwd(), "src", "data", "certificates.json");
+import { db } from "@/db";
+import { certificates } from "@/db/schema";
+import { desc, eq } from "drizzle-orm";
 
 export interface CertificateRecord {
     id: string;
@@ -18,31 +14,20 @@ export interface CertificateRecord {
     issuer: string;
 }
 
-// Ensure the data directory and file exist
-async function ensureDataFile() {
-    try {
-        await fs.access(DATA_FILE_PATH);
-    } catch {
-        const dir = path.dirname(DATA_FILE_PATH);
-        try {
-            await fs.access(dir);
-        } catch {
-            await fs.mkdir(dir, { recursive: true });
-        }
-        await fs.writeFile(DATA_FILE_PATH, JSON.stringify([], null, 2), "utf-8");
-    }
-}
-
 export async function saveCertificates(records: CertificateRecord[]) {
-    await ensureDataFile();
     try {
-        const fileContent = await fs.readFile(DATA_FILE_PATH, "utf-8");
-        const existingData: CertificateRecord[] = JSON.parse(fileContent);
+        if (records.length === 0) return { success: true, count: 0 };
 
-        // Append new records
-        const updatedData = [...existingData, ...records];
+        await db.insert(certificates).values(records.map(record => ({
+            id: record.id,
+            name: record.name,
+            verifyLink: record.verifyLink,
+            issuedAt: record.issuedAt,
+            templateId: record.templateId, // Using templateId based on schema
+            recipientEmail: record.recipientEmail,
+            issuer: record.issuer,
+        })));
 
-        await fs.writeFile(DATA_FILE_PATH, JSON.stringify(updatedData, null, 2), "utf-8");
         return { success: true, count: records.length };
     } catch (error) {
         console.error("Failed to save certificates:", error);
@@ -51,11 +36,21 @@ export async function saveCertificates(records: CertificateRecord[]) {
 }
 
 export async function getCertificate(id: string): Promise<CertificateRecord | null> {
-    await ensureDataFile();
     try {
-        const fileContent = await fs.readFile(DATA_FILE_PATH, "utf-8");
-        const data: CertificateRecord[] = JSON.parse(fileContent);
-        return data.find((cert) => cert.id === id) || null;
+        const result = await db.select().from(certificates).where(eq(certificates.id, id)).limit(1);
+
+        if (result.length === 0) return null;
+
+        const cert = result[0];
+        return {
+            id: cert.id,
+            name: cert.name,
+            verifyLink: cert.verifyLink,
+            issuedAt: cert.issuedAt,
+            templateId: cert.templateId || undefined,
+            recipientEmail: cert.recipientEmail || undefined,
+            issuer: cert.issuer,
+        };
     } catch (error) {
         console.error("Failed to get certificate:", error);
         return null;
@@ -63,11 +58,19 @@ export async function getCertificate(id: string): Promise<CertificateRecord | nu
 }
 
 export async function getAllCertificates(): Promise<CertificateRecord[]> {
-    await ensureDataFile();
     try {
-        const fileContent = await fs.readFile(DATA_FILE_PATH, "utf-8");
-        const data: CertificateRecord[] = JSON.parse(fileContent);
-        return data.reverse(); // Show newest first
+        // Show newest first
+        const results = await db.select().from(certificates).orderBy(desc(certificates.createdAt));
+
+        return results.map(cert => ({
+            id: cert.id,
+            name: cert.name,
+            verifyLink: cert.verifyLink,
+            issuedAt: cert.issuedAt,
+            templateId: cert.templateId || undefined,
+            recipientEmail: cert.recipientEmail || undefined,
+            issuer: cert.issuer,
+        }));
     } catch (error) {
         console.error("Failed to get all certificates:", error);
         return [];
