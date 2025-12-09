@@ -40,7 +40,7 @@ export function GenerateStep({ data, mapping, designConfig, onBack }: GenerateSt
     const [emailSubject, setEmailSubject] = useState("Your Certificate");
     const [emailBody, setEmailBody] = useState("Here is your certificate attached.");
     const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set(data.map((_, i) => i)));
-    const [emailStatuses, setEmailStatuses] = useState<Record<number, "pending" | "sent" | "failed" | "skipped">>({});
+    const [emailStatuses, setEmailStatuses] = useState<Record<number, { status: "pending" | "sent" | "failed" | "skipped", error?: string }>>({});
 
     const toggleRecipient = (index: number) => {
         const newSelected = new Set(selectedIndices);
@@ -181,14 +181,14 @@ export function GenerateStep({ data, mapping, designConfig, onBack }: GenerateSt
                     if (!isValidEmail(email)) {
                         setEmailStatuses(prev => ({
                             ...prev,
-                            [i]: "failed"
+                            [i]: { status: "failed", error: "Invalid email format" }
                         }));
                         console.warn(`Invalid email for row ${i}: ${email}`);
                     } else {
                         // Mark as pending initially
                         setEmailStatuses(prev => ({
                             ...prev,
-                            [i]: "pending"
+                            [i]: { status: "pending" }
                         }));
 
                         const base64Pdf = Buffer.from(pdfBytes).toString('base64');
@@ -204,7 +204,9 @@ export function GenerateStep({ data, mapping, designConfig, onBack }: GenerateSt
 
                             setEmailStatuses(prev => ({
                                 ...prev,
-                                [i]: result.success ? "sent" : "failed"
+                                [i]: result.success
+                                    ? { status: "sent" }
+                                    : { status: "failed", error: result.error || "Unknown error" }
                             }));
                             return result;
                         };
@@ -213,7 +215,7 @@ export function GenerateStep({ data, mapping, designConfig, onBack }: GenerateSt
                 } else {
                     setEmailStatuses(prev => ({
                         ...prev,
-                        [i]: "skipped"
+                        [i]: { status: "skipped" }
                     }));
                 }
 
@@ -261,8 +263,9 @@ export function GenerateStep({ data, mapping, designConfig, onBack }: GenerateSt
     // Calculate stats
     const totalSelected = selectedIndices.size;
     const totalEmailsWithStatus = Object.keys(emailStatuses).length;
-    const sentCount = Object.values(emailStatuses).filter(s => s === "sent").length;
-    const failedCount = Object.values(emailStatuses).filter(s => s === "failed").length;
+    const sentCount = Object.values(emailStatuses).filter(s => s.status === "sent").length;
+    const failedItems = Object.entries(emailStatuses).filter(([_, s]) => s.status === "failed");
+    const failedCount = failedItems.length;
 
 
     if (isGenerating || isDone) {
@@ -288,7 +291,22 @@ export function GenerateStep({ data, mapping, designConfig, onBack }: GenerateSt
                         <div className="text-left text-sm space-y-2 bg-gray-50 p-4 rounded-lg border border-gray-100 mb-6">
                             <p className="font-semibold text-gray-700">Email Status:</p>
                             <p className="text-green-600">Sent: {sentCount}</p>
-                            <p className="text-red-600">Failed: {failedCount}</p>
+                            <p className="text-red-600 font-medium">Failed: {failedCount}</p>
+
+                            {failedCount > 0 && (
+                                <div className="mt-2 pl-2 border-l-2 border-red-200 space-y-1">
+                                    {failedItems.map(([indexStr, status]) => {
+                                        const idx = parseInt(indexStr);
+                                        const recipientName = data[idx][mapping.name];
+                                        const recipientEmail = mapping.email ? data[idx][mapping.email] : "N/A";
+                                        return (
+                                            <div key={idx} className="text-xs text-red-500">
+                                                <span className="font-semibold">{recipientEmail}</span> ({recipientName}): {status.error}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
                     )}
 
