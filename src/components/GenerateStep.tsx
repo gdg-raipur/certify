@@ -20,7 +20,7 @@ const downloadBlob = (blob: Blob, filename: string) => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 };
-const hostedUrl = "https://certify-gray.vercel.app/";
+const hostedUrl = "https://gdgraipur.in/";
 
 interface GenerateStepProps {
     data: any[];
