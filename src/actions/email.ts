@@ -2,40 +2,46 @@
 
 import nodemailer from "nodemailer";
 
+export interface SMTPConfig {
+    host: string;
+    port: number;
+    user: string;
+    pass: string;
+    from?: string;
+}
+
 export async function sendCertificateEmail(
     recipientEmail: string,
     recipientName: string,
     subject: string,
     body: string,
     pdfBase64: string,
-    filename: string
+    filename: string,
+    smtpConfig?: SMTPConfig
 ) {
-    // Validate required environment variables
-    if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
-        console.error("Missing SMTP configuration");
-        return { success: false, error: "Server SMTP configuration is missing." };
+    if (!smtpConfig || !smtpConfig.host || !smtpConfig.user || !smtpConfig.pass) {
+        return { success: false, error: "SMTP configuration is missing. Please provide your SMTP details." };
     }
 
-    const port = Number(process.env.SMTP_PORT) || 587;
+    const port = Number(smtpConfig.port) || 587;
     const isSecure = port === 465;
 
     const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
+        host: smtpConfig.host,
         port: port,
         secure: isSecure,
         auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS,
+            user: smtpConfig.user,
+            pass: smtpConfig.pass,
         },
     });
 
     try {
         const info = await transporter.sendMail({
-            from: process.env.SMTP_FROM || '"Certify App" <no-reply@example.com>',
+            from: smtpConfig.from || `"Certify App" <${smtpConfig.user}>`,
             to: recipientEmail,
             subject: subject,
-            text: body, // plaintext body
-            // html: body, // could add html support later
+            text: body,
             attachments: [
                 {
                     filename: filename,
@@ -45,7 +51,7 @@ export async function sendCertificateEmail(
             ],
         });
 
-        console.log("Message sent: %s", info.messageId);
+        console.log("Message sent to %s: %s", recipientEmail, info.messageId);
         return { success: true };
     } catch (error) {
         console.error("Error sending email:", error);

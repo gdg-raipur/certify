@@ -39,8 +39,34 @@ export function GenerateStep({ data, mapping, designConfig, onBack }: GenerateSt
     const [showEmailConfig, setShowEmailConfig] = useState(false);
     const [emailSubject, setEmailSubject] = useState("Your Certificate");
     const [emailBody, setEmailBody] = useState("Here is your certificate attached.");
+
+    // SMTP Config State
+    const [smtpHost, setSmtpHost] = useState("");
+    const [smtpPort, setSmtpPort] = useState("587");
+    const [smtpUser, setSmtpUser] = useState("");
+    const [smtpPass, setSmtpPass] = useState("");
+    const [smtpFrom, setSmtpFrom] = useState("");
+    const [selectedProvider, setSelectedProvider] = useState("custom");
+
     const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set(data.map((_, i) => i)));
     const [emailStatuses, setEmailStatuses] = useState<Record<number, { status: "pending" | "sent" | "failed" | "skipped", error?: string }>>({});
+
+    const SMTP_PROVIDERS = {
+        gmail: { name: "Gmail", host: "smtp.gmail.com", port: "587" },
+        outlook: { name: "Outlook", host: "smtp.office365.com", port: "587" },
+        yahoo: { name: "Yahoo Mail", host: "smtp.mail.yahoo.com", port: "587" },
+        zoho: { name: "Zoho Mail", host: "smtp.zoho.com", port: "587" },
+        custom: { name: "Custom / Other", host: "", port: "587" }
+    };
+
+    const handleProviderChange = (providerKey: string) => {
+        setSelectedProvider(providerKey);
+        const provider = SMTP_PROVIDERS[providerKey as keyof typeof SMTP_PROVIDERS];
+        if (providerKey !== 'custom') {
+            setSmtpHost(provider.host);
+            setSmtpPort(provider.port);
+        }
+    };
 
     const toggleRecipient = (index: number) => {
         const newSelected = new Set(selectedIndices);
@@ -199,7 +225,14 @@ export function GenerateStep({ data, mapping, designConfig, onBack }: GenerateSt
                                 emailSubject,
                                 emailBody,
                                 base64Pdf,
-                                filename
+                                filename,
+                                {
+                                    host: smtpHost,
+                                    port: parseInt(smtpPort) || 587,
+                                    user: smtpUser,
+                                    pass: smtpPass,
+                                    from: smtpFrom || undefined
+                                }
                             );
 
                             setEmailStatuses(prev => ({
@@ -392,12 +425,77 @@ export function GenerateStep({ data, mapping, designConfig, onBack }: GenerateSt
                             {showEmailConfig && (
                                 <div className="space-y-4 animate-in slide-in-from-top-2 duration-200">
                                     <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">SMTP Service</label>
+                                        <select
+                                            value={selectedProvider}
+                                            onChange={(e) => handleProviderChange(e.target.value)}
+                                            className="w-full px-3 py-2 border text-slate-400 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                                        >
+                                            {Object.entries(SMTP_PROVIDERS).map(([key, provider]) => (
+                                                <option key={key} value={key}>
+                                                    {provider.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">SMTP Host</label>
+                                            <input
+                                                type="text"
+                                                placeholder="smtp.gmail.com"
+                                                value={smtpHost}
+                                                onChange={(e) => {
+                                                    setSmtpHost(e.target.value);
+                                                    setSelectedProvider('custom');
+                                                }}
+                                                className="w-full px-3 py-2 border text-slate-400 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Port</label>
+                                            <input
+                                                type="number"
+                                                placeholder="587 (default)"
+                                                value={smtpPort}
+                                                onChange={(e) => {
+                                                    setSmtpPort(e.target.value);
+                                                    setSelectedProvider('custom');
+                                                }}
+                                                className="w-full px-3 py-2 border text-slate-400 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">From Email</label>
+                                            <input
+                                                type="text"
+                                                placeholder="user@example.com"
+                                                value={smtpUser}
+                                                onChange={(e) => setSmtpUser(e.target.value)}
+                                                className="w-full px-3 py-2 border text-slate-400 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">SMTP Password</label>
+                                            <input
+                                                type="password"
+                                                placeholder="SMTP App Password"
+                                                value={smtpPass}
+                                                onChange={(e) => setSmtpPass(e.target.value)}
+                                                className="w-full px-3 py-2 border text-slate-400 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="border-t border-gray-200 my-4"></div>
+                                    <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Email Subject</label>
                                         <input
                                             type="text"
                                             value={emailSubject}
                                             onChange={(e) => setEmailSubject(e.target.value)}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            className="w-full px-3 py-2 border text-slate-400 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         />
                                     </div>
                                     <div>
@@ -406,7 +504,7 @@ export function GenerateStep({ data, mapping, designConfig, onBack }: GenerateSt
                                             value={emailBody}
                                             onChange={(e) => setEmailBody(e.target.value)}
                                             rows={4}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                                            className="w-full px-3 py-2 border text-slate-400 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
                                         />
                                     </div>
                                 </div>

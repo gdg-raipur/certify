@@ -43,14 +43,14 @@ export function MappingStep({ headers, onMappingComplete, onBack }: MappingStepP
     return (
         <div className="w-full max-w-xl mx-auto space-y-6">
             <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                <h3 className="text-lg font-semibold mb-4">Map CSV Columns</h3>
+                <h3 className="text-lg font-semibold text-slate-500 mb-4">Map CSV Columns</h3>
                 <div className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                             Recipient Name (Required)
                         </label>
                         <select
-                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full p-2 text-slate-300 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             value={mapping.name}
                             onChange={(e) => setMapping({ ...mapping, name: e.target.value })}
                         >
@@ -68,7 +68,7 @@ export function MappingStep({ headers, onMappingComplete, onBack }: MappingStepP
                             Unique ID or Link (Optional)
                         </label>
                         <select
-                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full p-2 text-slate-300 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             value={mapping.verifyLink}
                             onChange={(e) =>
                                 setMapping({ ...mapping, verifyLink: e.target.value })
@@ -88,7 +88,7 @@ export function MappingStep({ headers, onMappingComplete, onBack }: MappingStepP
                             Design/Template ID (Optional)
                         </label>
                         <select
-                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full p-2 text-slate-300 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             value={mapping.design}
                             onChange={(e) =>
                                 setMapping({ ...mapping, design: e.target.value })
@@ -111,7 +111,7 @@ export function MappingStep({ headers, onMappingComplete, onBack }: MappingStepP
                             Recipient Email (Optional)
                         </label>
                         <select
-                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full p-2 text-slate-300 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             value={mapping.email || ""}
                             onChange={(e) =>
                                 setMapping({ ...mapping, email: e.target.value })
