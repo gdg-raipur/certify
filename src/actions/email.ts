@@ -8,6 +8,7 @@ export interface SMTPConfig {
     user: string;
     pass: string;
     from?: string;
+    replyTo?: string;
 }
 
 export async function sendCertificateEmail(
@@ -39,6 +40,7 @@ export async function sendCertificateEmail(
     try {
         const info = await transporter.sendMail({
             from: smtpConfig.from || `"Certify App" <${smtpConfig.user}>`,
+            replyTo: smtpConfig.replyTo,
             to: recipientEmail,
             subject: subject,
             text: body,

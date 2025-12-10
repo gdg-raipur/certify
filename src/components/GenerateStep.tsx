@@ -46,6 +46,7 @@ export function GenerateStep({ data, mapping, designConfig, onBack }: GenerateSt
     const [smtpUser, setSmtpUser] = useState("");
     const [smtpPass, setSmtpPass] = useState("");
     const [smtpFrom, setSmtpFrom] = useState("");
+    const [smtpReplyTo, setSmtpReplyTo] = useState("");
     const [selectedProvider, setSelectedProvider] = useState("custom");
 
     const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set(data.map((_, i) => i)));
@@ -231,7 +232,8 @@ export function GenerateStep({ data, mapping, designConfig, onBack }: GenerateSt
                                     port: parseInt(smtpPort) || 587,
                                     user: smtpUser,
                                     pass: smtpPass,
-                                    from: smtpFrom || undefined
+                                    from: smtpFrom || undefined,
+                                    replyTo: smtpReplyTo || undefined
                                 }
                             );
 
@@ -468,7 +470,7 @@ export function GenerateStep({ data, mapping, designConfig, onBack }: GenerateSt
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">From Email</label>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">SMTP User</label>
                                             <input
                                                 type="text"
                                                 placeholder="user@example.com"
@@ -481,12 +483,33 @@ export function GenerateStep({ data, mapping, designConfig, onBack }: GenerateSt
                                             <label className="block text-sm font-medium text-gray-700 mb-1">SMTP Password</label>
                                             <input
                                                 type="password"
-                                                placeholder="SMTP App Password"
+                                                placeholder="App Password"
                                                 value={smtpPass}
                                                 onChange={(e) => setSmtpPass(e.target.value)}
                                                 className="w-full px-3 py-2 border text-slate-400 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                             />
                                         </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">From Sender (Optional)</label>
+                                        <input
+                                            type="text"
+                                            placeholder="user@example.com"
+                                            value={smtpFrom}
+                                            onChange={(e) => setSmtpFrom(e.target.value)}
+                                            className="w-full px-3 py-2 border text-slate-400 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Reply To (Optional)</label>
+                                        <input
+                                            type="text"
+                                            placeholder="support@example.com, manager@example.com"
+                                            value={smtpReplyTo}
+                                            onChange={(e) => setSmtpReplyTo(e.target.value)}
+                                            className="w-full px-3 py-2 border text-slate-400 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        />
+                                        <p className="text-xs text-slate-400 mt-1">Separate multiple emails with commas</p>
                                     </div>
                                     <div className="border-t border-gray-200 my-4"></div>
                                     <div>
