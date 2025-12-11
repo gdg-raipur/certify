@@ -20,7 +20,7 @@ const downloadBlob = (blob: Blob, filename: string) => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 };
-const hostedUrl = "https://gdgraipur.in/";
+const hostedUrl = process.env.HOSTED_URL || "https://gdgraipur.in/";
 
 interface GenerateStepProps {
     data: any[];
