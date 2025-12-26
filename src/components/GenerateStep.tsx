@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
-import JSZip from "jszip";
+//import JSZip from "jszip";
 import { generateQRCode } from "@/lib/qr";
 import { Download, Loader2, CheckCircle } from "lucide-react";
 import { saveCertificates } from "@/actions/certificates";
@@ -94,7 +94,7 @@ export function GenerateStep({ data, mapping, designConfig, onBack }: GenerateSt
         setEmailStatuses({});
 
         try {
-            const zip = new JSZip();
+            // const zip = new JSZip();
             const { templateUrl, templateDimensions, namePos, qrPos, idPos } = designConfig;
 
             // Generate Batch Data
@@ -201,7 +201,7 @@ export function GenerateStep({ data, mapping, designConfig, onBack }: GenerateSt
                 // Save PDF
                 const pdfBytes = await pdfDoc.save();
                 const filename = `${name.replace(/[^a-z0-9]/gi, '_')}_${uniqueId.slice(0, 8)}.pdf`;
-                zip.file(filename, pdfBytes);
+                // zip.file(filename, pdfBytes);
 
                 // Queue Email Task
                 if (shouldSendEmail) {
@@ -280,9 +280,9 @@ export function GenerateStep({ data, mapping, designConfig, onBack }: GenerateSt
             await saveCertificates(certificateRecords);
 
             // Generate Zip
-            setStatusMessage("Compressing...");
-            const content = await zip.generateAsync({ type: "blob" });
-            downloadBlob(content, "certificates.zip");
+            // setStatusMessage("Compressing...");
+            // const content = await zip.generateAsync({ type: "blob" });
+            // downloadBlob(content, "certificates.zip");
             setProgress(100);
             setIsDone(true);
 
