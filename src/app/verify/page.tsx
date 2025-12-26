@@ -6,6 +6,7 @@ import { getCertificate, CertificateRecord } from "@/actions/certificates";
 import { ShieldCheck, Calendar, User, Search, Loader2, Link as IconLink, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from 'react';
+import { Analytics } from '@vercel/analytics/next';
 
 // Separate component for search params logic
 function VerifyContent() {
@@ -55,7 +56,7 @@ function VerifyContent() {
 
     return (
         <div className="max-w-5xl w-full grid grid-cols-1 md:grid-cols-4 grid-rows-[auto_auto_auto] md:grid-rows-[minmax(180px,auto)_minmax(180px,auto)] gap-6">
-
+            <Analytics />
             {/* Header / Back Button */}
             <div className="md:col-span-4 flex items-center justify-between">
                 <Link
