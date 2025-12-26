@@ -8,6 +8,8 @@ import { Download, Loader2, CheckCircle } from "lucide-react";
 import { saveCertificates } from "@/actions/certificates";
 import { sendCertificateEmail } from "@/actions/email";
 import { isValidEmail, pLimit } from "@/lib/utils";
+import dotenv from "dotenv";
+dotenv.config();
 
 // Helper for download if file-saver is not available or just use simple anchor
 const downloadBlob = (blob: Blob, filename: string) => {
@@ -20,7 +22,7 @@ const downloadBlob = (blob: Blob, filename: string) => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 };
-const hostedUrl = process.env.HOSTED_URL || "https://gdgraipur.in/";
+const hostedUrl = process.env.HOSTED_URL || "https://devfestraipur2025.vercel.app/";
 
 interface GenerateStepProps {
     data: any[];
