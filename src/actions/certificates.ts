@@ -1,6 +1,7 @@
 "use server";
 
-import { readCertificates, writeCertificates, CertificateRecord as StorageCertificateRecord } from "@/lib/storage";
+import connectDB from "@/lib/db";
+import Certificate from "@/models/Certificate";
 
 export interface CertificateRecord {
     id: string;
@@ -16,25 +17,26 @@ export async function saveCertificates(records: CertificateRecord[]) {
     try {
         if (records.length === 0) return { success: true, count: 0 };
 
-        const currentData = await readCertificates();
-        const newRecords: StorageCertificateRecord[] = records.map(record => ({
+        await connectDB();
+
+        // Prepare records for insertion
+        // Check for existing IDs to avoid unique constraint errors if any duplicates attempt to sneak in
+        const recordIds = records.map(r => r.id);
+        const existingCertificates = await Certificate.find({ id: { $in: recordIds } }).select('id');
+        const existingIds = new Set(existingCertificates.map(c => c.id));
+
+        const newRecords = records.filter(r => !existingIds.has(r.id)).map(record => ({
             ...record,
-            createdAt: new Date() // Storing as Date object, stringified on write
+            createdAt: new Date()
         }));
 
-        // Append new records
-        // Simple distinct check if needed, but previously onConflictDoNothing was used for ID.
-        // We can check if ID exists.
-        const existingIds = new Set(currentData.map(c => c.id));
-        const uniqueNewRecords = newRecords.filter(r => !existingIds.has(r.id));
-
-        if (uniqueNewRecords.length === 0) {
+        if (newRecords.length === 0) {
             return { success: true, count: 0 };
         }
 
-        await writeCertificates([...currentData, ...uniqueNewRecords]);
+        await Certificate.insertMany(newRecords);
 
-        return { success: true, count: uniqueNewRecords.length };
+        return { success: true, count: newRecords.length };
     } catch (error) {
         console.error("Failed to save certificates:", error);
         throw new Error("Failed to save certificate data.");
@@ -43,8 +45,9 @@ export async function saveCertificates(records: CertificateRecord[]) {
 
 export async function getCertificate(id: string): Promise<CertificateRecord | null> {
     try {
-        const data = await readCertificates();
-        const cert = data.find(c => c.id === id);
+        await connectDB();
+        // lean() returns a plain JS object instead of a Mongoose document
+        const cert = await Certificate.findOne({ id }).lean();
 
         if (!cert) return null;
 
@@ -65,14 +68,10 @@ export async function getCertificate(id: string): Promise<CertificateRecord | nu
 
 export async function getAllCertificates(): Promise<CertificateRecord[]> {
     try {
-        const data = await readCertificates();
-        // Show newest first. Date string comparison works for ISO, but if JSON parsed as string, need 'new Date()'
-        // storage.ts writes JSON.stringify so it's a string.
-        return data.sort((a, b) => {
-            const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-            const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-            return dateB - dateA;
-        }).map(cert => ({
+        await connectDB();
+        const certs = await Certificate.find({}).sort({ createdAt: -1 }).lean();
+
+        return certs.map(cert => ({
             id: cert.id,
             name: cert.name,
             verifyLink: cert.verifyLink,
