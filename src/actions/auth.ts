@@ -7,11 +7,11 @@ export async function login(orgId: string, pass: string) {
 
     // Let's stick to the latest user edit for OrgID but use Env Var for password.
 
-    const validOrgId = "123";
+    const validOrgId = process.env.ADMIN_ORG_ID;
     const envPassword = process.env.ADMIN_PASSWORD;
 
-    if (!envPassword) {
-        console.error("ADMIN_PASSWORD is not set in environment variables.");
+    if (!envPassword || !validOrgId) {
+        console.error("ADMIN_PASSWORD or ADMIN_ORG_ID is not set in environment variables.");
         return false;
     }
 

@@ -4,7 +4,8 @@ dotenv.config();
 
 
 const db_password = process.env.DB_PASSWORD;
-const uri = `mongodb+srv://hasan-dev:${db_password}@cluster0.xqrooob.mongodb.net/?appName=Cluster0`;
+const db_name = process.env.DB_NAME;
+const uri = `mongodb+srv://${db_name}:${db_password}@cluster0.xqrooob.mongodb.net/?appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
