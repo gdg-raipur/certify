@@ -8,8 +8,6 @@ import { Download, Loader2, CheckCircle } from "lucide-react";
 import { saveCertificates } from "@/actions/certificates";
 import { sendCertificateEmail } from "@/actions/email";
 import { isValidEmail, pLimit } from "@/lib/utils";
-import dotenv from "dotenv";
-dotenv.config();
 
 // Helper for download if file-saver is not available or just use simple anchor
 const downloadBlob = (blob: Blob, filename: string) => {
