@@ -1,8 +1,7 @@
 "use server";
 
-import { db } from "@/db";
-import { certificates } from "@/db/schema";
-import { desc, eq } from "drizzle-orm";
+import connectDB from "@/lib/db";
+import Certificate from "@/models/Certificate";
 
 export interface CertificateRecord {
     id: string;
@@ -18,17 +17,26 @@ export async function saveCertificates(records: CertificateRecord[]) {
     try {
         if (records.length === 0) return { success: true, count: 0 };
 
-        await db.insert(certificates).values(records.map(record => ({
-            id: record.id,
-            name: record.name,
-            verifyLink: record.verifyLink,
-            issuedAt: record.issuedAt,
-            templateId: record.templateId, // Using templateId based on schema
-            recipientEmail: record.recipientEmail,
-            issuer: record.issuer,
-        }))).onConflictDoNothing();
+        await connectDB();
 
-        return { success: true, count: records.length };
+        // Prepare records for insertion
+        // Check for existing IDs to avoid unique constraint errors if any duplicates attempt to sneak in
+        const recordIds = records.map(r => r.id);
+        const existingCertificates = await Certificate.find({ id: { $in: recordIds } }).select('id');
+        const existingIds = new Set(existingCertificates.map(c => c.id));
+
+        const newRecords = records.filter(r => !existingIds.has(r.id)).map(record => ({
+            ...record,
+            createdAt: new Date()
+        }));
+
+        if (newRecords.length === 0) {
+            return { success: true, count: 0 };
+        }
+
+        await Certificate.insertMany(newRecords);
+
+        return { success: true, count: newRecords.length };
     } catch (error) {
         console.error("Failed to save certificates:", error);
         throw new Error("Failed to save certificate data.");
@@ -37,18 +45,19 @@ export async function saveCertificates(records: CertificateRecord[]) {
 
 export async function getCertificate(id: string): Promise<CertificateRecord | null> {
     try {
-        const result = await db.select().from(certificates).where(eq(certificates.id, id)).limit(1);
+        await connectDB();
+        // lean() returns a plain JS object instead of a Mongoose document
+        const cert = await Certificate.findOne({ id }).lean();
 
-        if (result.length === 0) return null;
+        if (!cert) return null;
 
-        const cert = result[0];
         return {
             id: cert.id,
             name: cert.name,
             verifyLink: cert.verifyLink,
             issuedAt: cert.issuedAt,
-            templateId: cert.templateId || undefined,
-            recipientEmail: cert.recipientEmail || undefined,
+            templateId: cert.templateId,
+            recipientEmail: cert.recipientEmail,
             issuer: cert.issuer,
         };
     } catch (error) {
@@ -59,16 +68,16 @@ export async function getCertificate(id: string): Promise<CertificateRecord | nu
 
 export async function getAllCertificates(): Promise<CertificateRecord[]> {
     try {
-        // Show newest first
-        const results = await db.select().from(certificates).orderBy(desc(certificates.createdAt));
+        await connectDB();
+        const certs = await Certificate.find({}).sort({ createdAt: -1 }).lean();
 
-        return results.map(cert => ({
+        return certs.map(cert => ({
             id: cert.id,
             name: cert.name,
             verifyLink: cert.verifyLink,
             issuedAt: cert.issuedAt,
-            templateId: cert.templateId || undefined,
-            recipientEmail: cert.recipientEmail || undefined,
+            templateId: cert.templateId,
+            recipientEmail: cert.recipientEmail,
             issuer: cert.issuer,
         }));
     } catch (error) {
