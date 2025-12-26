@@ -1,8 +1,6 @@
 "use server";
 
-import { db } from "@/db";
-import { certificates } from "@/db/schema";
-import { desc, eq } from "drizzle-orm";
+import { readCertificates, writeCertificates, CertificateRecord as StorageCertificateRecord } from "@/lib/storage";
 
 export interface CertificateRecord {
     id: string;
@@ -18,17 +16,25 @@ export async function saveCertificates(records: CertificateRecord[]) {
     try {
         if (records.length === 0) return { success: true, count: 0 };
 
-        await db.insert(certificates).values(records.map(record => ({
-            id: record.id,
-            name: record.name,
-            verifyLink: record.verifyLink,
-            issuedAt: record.issuedAt,
-            templateId: record.templateId, // Using templateId based on schema
-            recipientEmail: record.recipientEmail,
-            issuer: record.issuer,
-        }))).onConflictDoNothing();
+        const currentData = await readCertificates();
+        const newRecords: StorageCertificateRecord[] = records.map(record => ({
+            ...record,
+            createdAt: new Date() // Storing as Date object, stringified on write
+        }));
 
-        return { success: true, count: records.length };
+        // Append new records
+        // Simple distinct check if needed, but previously onConflictDoNothing was used for ID.
+        // We can check if ID exists.
+        const existingIds = new Set(currentData.map(c => c.id));
+        const uniqueNewRecords = newRecords.filter(r => !existingIds.has(r.id));
+
+        if (uniqueNewRecords.length === 0) {
+            return { success: true, count: 0 };
+        }
+
+        await writeCertificates([...currentData, ...uniqueNewRecords]);
+
+        return { success: true, count: uniqueNewRecords.length };
     } catch (error) {
         console.error("Failed to save certificates:", error);
         throw new Error("Failed to save certificate data.");
@@ -37,18 +43,18 @@ export async function saveCertificates(records: CertificateRecord[]) {
 
 export async function getCertificate(id: string): Promise<CertificateRecord | null> {
     try {
-        const result = await db.select().from(certificates).where(eq(certificates.id, id)).limit(1);
+        const data = await readCertificates();
+        const cert = data.find(c => c.id === id);
 
-        if (result.length === 0) return null;
+        if (!cert) return null;
 
-        const cert = result[0];
         return {
             id: cert.id,
             name: cert.name,
             verifyLink: cert.verifyLink,
             issuedAt: cert.issuedAt,
-            templateId: cert.templateId || undefined,
-            recipientEmail: cert.recipientEmail || undefined,
+            templateId: cert.templateId,
+            recipientEmail: cert.recipientEmail,
             issuer: cert.issuer,
         };
     } catch (error) {
@@ -59,16 +65,20 @@ export async function getCertificate(id: string): Promise<CertificateRecord | nu
 
 export async function getAllCertificates(): Promise<CertificateRecord[]> {
     try {
-        // Show newest first
-        const results = await db.select().from(certificates).orderBy(desc(certificates.createdAt));
-
-        return results.map(cert => ({
+        const data = await readCertificates();
+        // Show newest first. Date string comparison works for ISO, but if JSON parsed as string, need 'new Date()'
+        // storage.ts writes JSON.stringify so it's a string.
+        return data.sort((a, b) => {
+            const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            return dateB - dateA;
+        }).map(cert => ({
             id: cert.id,
             name: cert.name,
             verifyLink: cert.verifyLink,
             issuedAt: cert.issuedAt,
-            templateId: cert.templateId || undefined,
-            recipientEmail: cert.recipientEmail || undefined,
+            templateId: cert.templateId,
+            recipientEmail: cert.recipientEmail,
             issuer: cert.issuer,
         }));
     } catch (error) {

@@ -7,32 +7,19 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/certify
+
       # Add other env vars here or use env_file
     env_file:
       - .env.local
     depends_on:
-      - db
+
     networks:
       - certify-network
 
-  db:
-    image: postgres:alpine
-    restart: always
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: certify
-    volumes:
-      - db_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    networks:
-      - certify-network
+
 
 networks:
   certify-network:
     driver: bridge
 
-volumes:
-  db_data:
+
