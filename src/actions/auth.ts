@@ -1,6 +1,5 @@
 "use server";
-import dotenv from "dotenv";
-dotenv.config();
+
 export async function login(orgId: string, pass: string) {
     // In a real app, Org ID might also be an env var or DB check.
     // The user's specific request "yes do so, and can we keep password as enviroment variable" implies preserving the logic but moving the secret.
