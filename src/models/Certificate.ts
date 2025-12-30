@@ -11,7 +11,8 @@ export interface ICertificate extends Document {
     createdAt: Date;
 }
 
-const CertificateSchema: Schema = new Schema({
+// Prevent overwriting model if already compiled
+export const CertificateSchema: Schema = new Schema({
     id: { type: String, required: true, unique: true },
     name: { type: String, required: true },
     verifyLink: { type: String, required: true },
@@ -22,7 +23,6 @@ const CertificateSchema: Schema = new Schema({
     createdAt: { type: Date, default: Date.now },
 });
 
-// Prevent overwriting model if already compiled
 const Certificate: Model<ICertificate> = mongoose.models.Certificate || mongoose.model<ICertificate>('Certificate', CertificateSchema);
 
 export default Certificate;
