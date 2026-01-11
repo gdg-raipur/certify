@@ -120,9 +120,14 @@ export function GenerateStep({ data, mapping, designConfig, onBack }: GenerateSt
                 // Generate Unique ID
                 const uniqueId = crypto.randomUUID();
 
-                // Construct Verify Link
-                const baseUrl = hostedUrl;
-                const verifyLink = `${baseUrl}/verify?id=${uniqueId}`;
+                // Construct Verify Link - use from CSV if mapped, otherwise generate
+                let verifyLink: string;
+                if (mapping.verifyLink && row[mapping.verifyLink]) {
+                    verifyLink = row[mapping.verifyLink];
+                } else {
+                    const baseUrl = hostedUrl;
+                    verifyLink = `${baseUrl}/verify?id=${uniqueId}`;
+                }
 
                 // Store record for saving
                 certificateRecords.push({
