@@ -7,7 +7,7 @@ import { generateQRCode } from "@/lib/qr";
 import { Download, Loader2, CheckCircle } from "lucide-react";
 import { saveCertificates } from "@/actions/certificates";
 import { sendCertificateEmail } from "@/actions/email";
-import { isValidEmail, pLimit } from "@/lib/utils";
+import { isValidEmail, pLimit, isValidUrl } from "@/lib/utils";
 
 
 // Helper for download if file-saver is not available or just use simple anchor
@@ -117,12 +117,18 @@ export function GenerateStep({ data, mapping, designConfig, onBack }: GenerateSt
                 const email = mapping.email ? row[mapping.email] : undefined;
                 const shouldSendEmail = showEmailConfig && email && selectedIndices.has(i);
 
-                // Generate Unique ID
+                // Generate Unique ID for database record
                 const uniqueId = crypto.randomUUID();
 
-                // Construct Verify Link
-                const baseUrl = hostedUrl;
-                const verifyLink = `${baseUrl}/verify?id=${uniqueId}`;
+                // Construct Verify Link - use from CSV if mapped, otherwise generate
+                let verifyLink: string;
+                const csvValue = mapping.verifyLink ? row[mapping.verifyLink] : null;
+                const csvVerifyLink = typeof csvValue === 'string' ? csvValue.trim() : '';
+                if (csvVerifyLink && isValidUrl(csvVerifyLink)) {
+                    verifyLink = csvVerifyLink;
+                } else {
+                    verifyLink = `${hostedUrl}/verify?id=${uniqueId}`;
+                }
 
                 // Store record for saving
                 certificateRecords.push({
