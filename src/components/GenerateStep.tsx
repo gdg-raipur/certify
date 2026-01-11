@@ -7,7 +7,7 @@ import { generateQRCode } from "@/lib/qr";
 import { Download, Loader2, CheckCircle } from "lucide-react";
 import { saveCertificates } from "@/actions/certificates";
 import { sendCertificateEmail } from "@/actions/email";
-import { isValidEmail, pLimit } from "@/lib/utils";
+import { isValidEmail, pLimit, isValidUrl } from "@/lib/utils";
 
 
 // Helper for download if file-saver is not available or just use simple anchor
@@ -122,8 +122,9 @@ export function GenerateStep({ data, mapping, designConfig, onBack }: GenerateSt
 
                 // Construct Verify Link - use from CSV if mapped, otherwise generate
                 let verifyLink: string;
-                if (mapping.verifyLink && row[mapping.verifyLink]) {
-                    verifyLink = row[mapping.verifyLink];
+                const csvVerifyLink = mapping.verifyLink && row[mapping.verifyLink]?.trim();
+                if (csvVerifyLink && isValidUrl(csvVerifyLink)) {
+                    verifyLink = csvVerifyLink;
                 } else {
                     const baseUrl = hostedUrl;
                     verifyLink = `${baseUrl}/verify?id=${uniqueId}`;

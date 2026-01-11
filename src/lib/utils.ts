@@ -16,6 +16,21 @@ export function isValidEmail(email: string): boolean {
 }
 
 /**
+ * Validates a URL to ensure it's properly formatted.
+ * @param url - The URL string to validate
+ * @returns true if the URL is valid, false otherwise
+ */
+export function isValidUrl(url: string): boolean {
+  try {
+    const parsedUrl = new URL(url);
+    // Ensure it's http or https protocol
+    return parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Executes an array of async tasks with a concurrency limit.
  * @param concurrency - Maximum number of tasks to run concurrently
  * @param tasks - Array of async task functions to execute
