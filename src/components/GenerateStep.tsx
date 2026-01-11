@@ -117,12 +117,13 @@ export function GenerateStep({ data, mapping, designConfig, onBack }: GenerateSt
                 const email = mapping.email ? row[mapping.email] : undefined;
                 const shouldSendEmail = showEmailConfig && email && selectedIndices.has(i);
 
-                // Generate Unique ID
+                // Generate Unique ID for database record
                 const uniqueId = crypto.randomUUID();
 
                 // Construct Verify Link - use from CSV if mapped, otherwise generate
                 let verifyLink: string;
-                const csvVerifyLink = mapping.verifyLink && row[mapping.verifyLink]?.trim();
+                const csvValue = mapping.verifyLink ? row[mapping.verifyLink] : null;
+                const csvVerifyLink = typeof csvValue === 'string' ? csvValue.trim() : '';
                 if (csvVerifyLink && isValidUrl(csvVerifyLink)) {
                     verifyLink = csvVerifyLink;
                 } else {

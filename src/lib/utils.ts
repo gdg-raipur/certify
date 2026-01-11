@@ -21,6 +21,9 @@ export function isValidEmail(email: string): boolean {
  * @returns true if the URL is valid, false otherwise
  */
 export function isValidUrl(url: string): boolean {
+  if (!url || typeof url !== 'string' || !url.trim()) {
+    return false;
+  }
   try {
     const parsedUrl = new URL(url);
     // Ensure it's http or https protocol
