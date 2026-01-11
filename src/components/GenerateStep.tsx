@@ -127,8 +127,7 @@ export function GenerateStep({ data, mapping, designConfig, onBack }: GenerateSt
                 if (csvVerifyLink && isValidUrl(csvVerifyLink)) {
                     verifyLink = csvVerifyLink;
                 } else {
-                    const baseUrl = hostedUrl;
-                    verifyLink = `${baseUrl}/verify?id=${uniqueId}`;
+                    verifyLink = `${hostedUrl}/verify?id=${uniqueId}`;
                 }
 
                 // Store record for saving
