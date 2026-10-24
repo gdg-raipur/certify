@@ -1,11 +1,21 @@
 import mongoose from 'mongoose';
 
-const DB_PASSWORD = process.env.DB_PASSWORD;
-if (!DB_PASSWORD) {
-    throw new Error('Please define the DB_PASSWORD environment variable inside .env');
+/**
+ * Resolves the MongoDB connection string for this instance.
+ * Prefers MONGODB_URI; falls back to the legacy DB_PASSWORD-based cluster URI
+ * so existing deployments keep working. Returns null when no database is configured.
+ */
+export function getMongoUri(): string | null {
+    if (process.env.MONGODB_URI) return process.env.MONGODB_URI;
+    if (process.env.DB_PASSWORD) {
+        return `mongodb+srv://hasan-dev:${process.env.DB_PASSWORD}@cluster0.xqrooob.mongodb.net/certify?retryWrites=true&w=majority&appName=Cluster0`;
+    }
+    return null;
 }
 
-const MONGODB_URI = `mongodb+srv://hasan-dev:${DB_PASSWORD}@cluster0.xqrooob.mongodb.net/certify?retryWrites=true&w=majority&appName=Cluster0`;
+export function isDbConfigured(): boolean {
+    return getMongoUri() !== null;
+}
 
 interface MongooseCache {
     conn: typeof mongoose | null;
@@ -23,18 +33,17 @@ if (!cached) {
 }
 
 async function connectDB() {
+    const uri = getMongoUri();
+    if (!uri) {
+        throw new Error('No database configured. Set MONGODB_URI to enable the certificate registry.');
+    }
+
     if (cached.conn) {
         return cached.conn;
     }
 
     if (!cached.promise) {
-        const opts = {
-            bufferCommands: false,
-        };
-
-        cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
-            return mongoose;
-        });
+        cached.promise = mongoose.connect(uri, { bufferCommands: false });
     }
 
     try {

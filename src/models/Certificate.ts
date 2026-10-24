@@ -5,24 +5,26 @@ export interface ICertificate extends Document {
     name: string;
     verifyLink: string;
     issuedAt: string;
+    event?: string;
     templateId?: string;
-    recipientEmail?: string;
+    recipientEmail?: string; // Only present on legacy records; new records don't store emails
     issuer: string;
     createdAt: Date;
 }
 
-// Prevent overwriting model if already compiled
 export const CertificateSchema: Schema = new Schema({
     id: { type: String, required: true, unique: true },
     name: { type: String, required: true },
     verifyLink: { type: String, required: true },
     issuedAt: { type: String, required: true },
+    event: { type: String },
     templateId: { type: String },
     recipientEmail: { type: String },
     issuer: { type: String, required: true },
     createdAt: { type: Date, default: Date.now },
 });
 
+// Prevent overwriting model if already compiled
 const Certificate: Model<ICertificate> = mongoose.models.Certificate || mongoose.model<ICertificate>('Certificate', CertificateSchema);
 
 export default Certificate;
